@@ -37,11 +37,11 @@ $subject = "Energy report $monthLabel: " . $kwh($total);
 // ---- plain text ----------------------------------------------------------
 $w = max(array_map(fn($r) => strlen($r['name']), $rows)) + 2;
 $text = "Energy report $monthLabel\n\nTotal: " . $kwh($total);
-if ($totalOld) $text .= " ({$pct($change($total, $totalOld))} vs $prevLabel, " . $kwh($totalOld) . ')';
+if ($totalOld && $hasData) $text .= " ({$pct($change($total, $totalOld))} vs $prevLabel, " . $kwh($totalOld) . ')';
 $text .= "\nAverage: " . number_format($perDay, 2) . ' kWh per day, ' . round($avgW) . " W\n\n";
 foreach ($rows as $r) {
     $text .= str_pad($r['name'], $w) . str_pad($kwh($r['now']), 12, ' ', STR_PAD_LEFT)
-           . ($r['old'] ? '   ' . $pct($change($r['now'], $r['old'])) : '') . "\n";
+           . ($r['old'] && $hasData ? '   ' . $pct($change($r['now'], $r['old'])) : '') . "\n";
 }
 if (!$hasData) $text .= "\nNo readings for this month. Is the counter cron job (counter.php) running?\n";
 if (defined('DASHBOARD_URL')) $text .= "\nDashboard: " . DASHBOARD_URL . "\n";
@@ -66,7 +66,7 @@ $rowsHtml = '';
 $bar8 = 'height:8px;font-size:1px;line-height:8px;mso-line-height-rule:exactly;';   // Outlook ignores height without it
 foreach ($rows as $r) {
     $bar = max(1, round($r['now'] / $max * 100));
-    $p = $change($r['now'], $r['old']);
+    $p = $hasData ? $change($r['now'], $r['old']) : null;
     $rowsHtml .= '<tr>'
         . '<td style="padding:12px 0;border-top:1px solid #ececef;font-size:14px;color:#18181b;font-weight:600;" width="28%">' . $e($r['name']) . '</td>'
         . '<td style="padding:12px 12px;border-top:1px solid #ececef;">'
