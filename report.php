@@ -79,10 +79,11 @@ foreach ($rows as $r) {
         . '</tr>';
 }
 
-// table cell, not <p>: Outlook ignores padding on paragraphs
-$notice = $hasData ? '' : '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;"><tr>'
-    . '<td bgcolor="#fffaeb" style="padding:12px 14px;background:#fffaeb;border:1px solid #fedf89;border-radius:8px;font-size:13px;line-height:1.5;color:#93370d;">'
-    . 'No readings for this month. Check that the counter cron job (counter.php) is running.</td></tr></table>';
+// Same shape as the button, in amber. Spacing is a spacer cell, because Outlook turns
+// margins on tables into inner padding.
+$notice = $hasData ? '' : '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td height="20" style="font-size:0;line-height:20px;mso-line-height-rule:exactly;">&nbsp;</td></tr><tr>'
+    . '<td bgcolor="#fdb022" style="background:#fdb022;border-radius:6px;padding:10px 18px;font-size:14px;line-height:1.4;font-weight:600;color:#1f1400;">'
+    . 'No readings this month. Is the counter cron job running?</td></tr></table>';
 $button = defined('DASHBOARD_URL')
     // the padding sits on the table cell: Outlook ignores padding on links
     ? '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td bgcolor="#0f6cbd" style="background:#0f6cbd;border-radius:6px;padding:10px 18px;">'
