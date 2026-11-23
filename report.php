@@ -9,7 +9,8 @@ require __DIR__ . '/mail.php';
 $opt = getopt('', ['dry-run', 'month:', 'html']);
 $month = $opt['month'] ?? date('Y-m', strtotime('first day of last month'));
 $prev = date('Y-m', strtotime("$month-01 -1 month"));
-$usage = json_decode((string) @file_get_contents(__DIR__ . '/data/usage.json'), true)['months'] ?? [];
+$db = json_decode((string) @file_get_contents(__DIR__ . '/data/usage.json'), true);
+$usage = $db['months'] ?? [];
 
 // ---- numbers -------------------------------------------------------------
 $rows = [];
@@ -19,7 +20,10 @@ foreach (array_column(PLUGS, 'name') as $n) {
 usort($rows, fn($a, $b) => $b['now'] <=> $a['now']);
 $total = array_sum(array_column($rows, 'now'));
 $totalOld = isset($usage[$prev]) ? array_sum($usage[$prev]) : null;
-$days = (int) date('t', strtotime("$month-01"));
+// averages over the time actually measured, so a month that started mid-way is not diluted
+$hours = ($db['hours'][$month] ?? 0) ?: (int) date('t', strtotime("$month-01")) * 24;
+$perDay = $total / $hours * 24;
+$avgW = $total / $hours * 1000;
 $hasData = isset($usage[$month]);
 
 $monthLabel = date('F Y', strtotime("$month-01"));
@@ -34,7 +38,7 @@ $subject = "Energy report $monthLabel: " . $kwh($total);
 $w = max(array_map(fn($r) => strlen($r['name']), $rows)) + 2;
 $text = "Energy report $monthLabel\n\nTotal: " . $kwh($total);
 if ($totalOld) $text .= " ({$pct($change($total, $totalOld))} vs $prevLabel, " . $kwh($totalOld) . ')';
-$text .= "\nAverage: " . number_format($total / $days, 2) . ' kWh per day, ' . round($total / ($days * 24) * 1000) . " W\n\n";
+$text .= "\nAverage: " . number_format($perDay, 2) . ' kWh per day, ' . round($avgW) . " W\n\n";
 foreach ($rows as $r) {
     $text .= str_pad($r['name'], $w) . str_pad($kwh($r['now']), 12, ' ', STR_PAD_LEFT)
            . ($r['old'] ? '   ' . $pct($change($r['now'], $r['old'])) : '') . "\n";
@@ -104,8 +108,8 @@ $html = <<<HTML
   </td></tr>
   <tr><td style="padding:20px 32px 8px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#fafafa" style="background:#fafafa;border:1px solid #ececef;border-radius:8px;"><tr>
-      {$stat('Per day', $e(number_format($total / $days, 2)) . ' kWh')}
-      {$stat('Average power', $e(round($total / ($days * 24) * 1000)) . ' W', 'border-left:1px solid #ececef;')}
+      {$stat('Per day', $e(number_format($perDay, 2)) . ' kWh')}
+      {$stat('Average power', $e(round($avgW)) . ' W', 'border-left:1px solid #ececef;')}
     </tr></table>
   </td></tr>
   <tr><td style="padding:20px 32px 8px;">

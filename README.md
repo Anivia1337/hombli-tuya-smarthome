@@ -144,6 +144,8 @@ Data points used: `1` on/off, `18` current in mA, `19` power in W×10, `20` volt
 
 Energy is the average power between two readings times the time in between. With one reading per minute this is close to the plug's own app for steady loads. Short spikes between readings are missed.
 
+The counter also records how long it actually measured each month. The report's daily and average-power figures use that time, so a month where the counter started late still shows realistic averages.
+
 Gaps longer than 10 minutes (server or plug offline) are not counted, because the usage during the gap is unknown. The monthly total is then a bit low.
 
 ## License
