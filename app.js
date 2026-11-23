@@ -28,6 +28,34 @@ function card(p) {
   return c;
 }
 
+// PM2.5 bands of the European Air Quality Index (µg/m³)
+const PM25 = [[10, 'Good'], [20, 'Fair'], [25, 'Moderate'], [50, 'Poor'], [75, 'Very poor'], [Infinity, 'Extremely poor']];
+
+function airCard(a) {
+  const c = el('article', 'card' + (a.error || !a.on ? ' off' : ''));
+  const h = el('h2', '', a.name);
+  h.append(el('span', 'pill', a.error ? 'Offline' : a.on ? 'On' : 'Off'));
+  c.append(h);
+  if (a.error) {
+    c.append(el('p', 'err', a.error));
+    return c;
+  }
+  const big = el('p', 'big', a.pm25 + ' ');
+  big.append(el('small', '', 'µg/m³ PM2.5'));
+  const dl = el('dl');
+  const rows = [
+    ['Air quality', PM25.find(([max]) => a.pm25 <= max)[1]],
+    ['Humidity', a.humidity + ' %'],
+    ['Temperature', fmt(a.temp) + ' °C'],
+    ['Mode', a.mode ?? '–'],
+    ['Filter', a.filter + ' %'],
+  ];
+  for (const [k, v] of rows) dl.append(el('dt', '', k), el('dd', '', v));
+  c.append(big, dl);
+  if (a.fault) c.append(el('p', 'warn', a.fault));
+  return c;
+}
+
 function usageTable(months, names) {
   const keys = Object.keys(months || {}).reverse();
   $('empty').hidden = keys.length > 0;
@@ -55,7 +83,7 @@ async function load() {
     const r = await fetch('api.php', { cache: 'no-store' });
     if (r.status === 401) { location.reload(); return; }
     const d = await r.json();
-    $('plugs').replaceChildren(...d.plugs.map(card));
+    $('plugs').replaceChildren(...d.plugs.map(card), ...(d.air ? [airCard(d.air)] : []));
     $('total').textContent = fmt(d.plugs.reduce((s, p) => s + (p.w || 0), 0));
     usageTable(d.months, d.plugs.map((p) => p.name));
     $('updated').textContent = 'Updated ' + new Date(d.time * 1000).toLocaleTimeString(LOCALE);

@@ -54,3 +54,4 @@ td:last-child{font-weight:600}
 @media (max-width:520px){th,td{padding:8px 10px}}
 .scroll{overflow-x:auto;border-radius:12px}
 td{white-space:nowrap}
+.warn{align-self:flex-start;font-size:13px;font-weight:600;color:#1f1400;background:#fdb022;border-radius:6px;padding:4px 10px}

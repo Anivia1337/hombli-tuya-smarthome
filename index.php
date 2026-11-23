@@ -37,7 +37,7 @@ if (isset($_GET['logout'])) { session_destroy(); header('Location: ' . strtok($_
   <header>
     <div>
       <h1>Smarthome</h1>
-      <p class="sub">Smart plugs · <span id="updated">loading …</span></p>
+      <p class="sub">Devices · <span id="updated">loading …</span></p>
     </div>
     <a class="logout" href="?logout=1">Sign out</a>
   </header>

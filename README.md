@@ -6,6 +6,7 @@ A small read-only dashboard for Wi-Fi smart plugs built on Tuya (Smart Life, Hom
 - total power of all plugs
 - energy usage in kWh per plug and month, with the last 13 months listed
 - optionally, a monthly usage report by email
+- optionally, a Xiaomi Smart Air Purifier 4 Pro: PM2.5, humidity, temperature, mode and filter life
 
 It never switches a plug. The code only sends status queries.
 
@@ -67,7 +68,7 @@ Give every plug a **fixed DHCP lease** in your router, otherwise the IP changes 
 
 Copy the folder to your web server, for example as `/smarthome`. The bundled `.htaccess` (Apache) does this:
 
-- blocks `config.php`, `tuya.php`, `auth.php`, `counter.php`, `report.php`, `mail.php` and `data/`
+- blocks `config.php`, `tuya.php`, `miio.php`, `auth.php`, `counter.php`, `report.php`, `mail.php` and `data/`
 - sets a strict Content Security Policy
 - turns off `DirectorySlash`. Behind a reverse proxy, Apache would otherwise redirect `/smarthome` to an `http://` URL. With it off, `/smarthome` (no slash) needs a rewrite in the parent `.htaccess`:
 
@@ -127,11 +128,27 @@ sudo -u www-data php /var/www/smarthome/report.php --month=2026-11
 0 7 1 * * php /var/www/smarthome/report.php
 ```
 
+### 8. Xiaomi air purifier (optional)
+
+The Xiaomi Smart Air Purifier 4 Pro (`zhimi.airp.vb4`) is read locally over the miIO protocol (UDP port 54321). It needs the device token from the Xiaomi cloud, which you get once with [Xiaomi-cloud-tokens-extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor):
+
+```sh
+git clone https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor
+cd Xiaomi-cloud-tokens-extractor
+pip install -r requirements.txt
+python token_extractor.py
+```
+
+Sign in with your Xiaomi Home account and copy the 32-character token of the purifier into `AIR_PURIFIER` in `config.php`. The token changes only if the purifier is reset or paired again.
+
+The purifier reports no power usage, so it gets its own card and is not counted in the kWh table. Other Xiaomi purifiers use different property ids. Adjust `purifier_values()` in `miio.php` using the model's spec on [miot-spec.org](https://miot-spec.org).
+
 ## How it works
 
 | File | Purpose |
 |---|---|
 | `tuya.php` | Minimal Tuya 3.3 client: sends an encrypted `DP_QUERY` to port 6668 and decrypts the reply (AES-128-ECB with the local key) |
+| `miio.php` | Minimal Xiaomi miIO client: handshake, then an AES-128-CBC encrypted `get_properties` |
 | `api.php` | JSON for the page: current values of all plugs plus monthly usage. Readings are cached for 4 s, because the plugs handle parallel connections badly. |
 | `counter.php` | Cron job for the kWh counter (CLI only) |
 | `report.php`, `mail.php` | Monthly report and a minimal SMTP client (CLI only) |

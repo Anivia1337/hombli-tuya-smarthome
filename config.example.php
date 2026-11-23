@@ -18,3 +18,7 @@ const PLUGS = [
 const MAIL_ACCOUNT = '/etc/smarthome/mail.php';
 const MAIL_TO = 'you@example.com';
 const DASHBOARD_URL = 'https://example.com/smarthome';   // optional, shown in the mail
+
+// Optional: Xiaomi Smart Air Purifier 4 Pro (zhimi.airp.vb4), shown as an extra card.
+// The token comes from Xiaomi-cloud-tokens-extractor (see README).
+// const AIR_PURIFIER = ['name' => 'Air purifier', 'ip' => '192.168.1.60', 'token' => '0123456789abcdef0123456789abcdef'];
