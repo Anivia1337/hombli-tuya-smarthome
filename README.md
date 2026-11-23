@@ -95,18 +95,9 @@ The user running the cron job must be able to write to `data/`. The first number
 
 ### 7. Monthly report by email (optional)
 
-`report.php` mails the usage of the previous month, per plug and in total, compared with the month before:
+`report.php` mails the usage of the previous month: the total, the change against the month before, the average per day and in watts, and a breakdown per plug. The mail has an HTML version and a plain-text fallback.
 
-```text
-Subject: Energy usage November 2026: 101.79 kWh
-
-Energy usage for November 2026
-
-desk       5.02 kWh  (Oct: 7.31 kWh, -31 %)
-tv        96.77 kWh  (Oct: 148.20 kWh, -35 %)
--------------------
-Total    101.79 kWh  (Oct: 155.51 kWh, -35 %)
-```
+![Monthly report mail](docs/report.png)
 
 It sends through an SMTP mailbox. Put the mailbox login in a file **outside the web root** that the cron user can read:
 
@@ -127,7 +118,8 @@ sudo chmod 640 /etc/smarthome/mail.php
 `smtp` is optional and defaults to IONOS (`ssl://smtp.ionos.de:465`). Set `MAIL_ACCOUNT`, `MAIL_TO` and, optionally, `DASHBOARD_URL` in `config.php`. Check the text with a dry run, send one real mail, then add the cron job:
 
 ```sh
-sudo -u www-data php /var/www/smarthome/report.php --dry-run
+sudo -u www-data php /var/www/smarthome/report.php --dry-run          # text version
+sudo -u www-data php /var/www/smarthome/report.php --dry-run --html   # HTML version
 sudo -u www-data php /var/www/smarthome/report.php --month=2026-11
 ```
 
