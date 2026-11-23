@@ -59,6 +59,7 @@ $stat = fn(string $label, string $value, string $border = '') => "<td width=\"50
     . "<div style=\"font-size:12px;color:#71717a;\">$label</div><div style=\"font-size:17px;font-weight:600;color:#18181b;margin-top:2px;\">$value</div></td>";
 
 $rowsHtml = '';
+$bar8 = 'height:8px;font-size:1px;line-height:8px;mso-line-height-rule:exactly;';   // Outlook ignores height without it
 foreach ($rows as $r) {
     $bar = max(1, round($r['now'] / $max * 100));
     $p = $change($r['now'], $r['old']);
@@ -66,8 +67,8 @@ foreach ($rows as $r) {
         . '<td style="padding:12px 0;border-top:1px solid #ececef;font-size:14px;color:#18181b;font-weight:600;" width="28%">' . $e($r['name']) . '</td>'
         . '<td style="padding:12px 12px;border-top:1px solid #ececef;">'
         .   '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
-        .   "<td width=\"$bar%\" height=\"8\" style=\"background:#0f6cbd;border-radius:4px;font-size:0;line-height:0;\">&nbsp;</td>"
-        .   ($bar < 100 ? '<td style="font-size:0;line-height:0;">&nbsp;</td>' : '')
+        .   "<td width=\"$bar%\" height=\"8\" bgcolor=\"#0f6cbd\" style=\"background:#0f6cbd;border-radius:4px;$bar8\">&nbsp;</td>"
+        .   ($bar < 100 ? "<td height=\"8\" bgcolor=\"#eef0f3\" style=\"background:#eef0f3;border-radius:4px;$bar8\">&nbsp;</td>" : '')
         .   '</tr></table></td>'
         . '<td align="right" style="padding:12px 0;border-top:1px solid #ececef;font-size:14px;color:#18181b;white-space:nowrap;" width="22%">' . $e($kwh($r['now']))
         . ($p === null ? '' : '<div style="font-size:12px;color:#71717a;">' . $e($pct($p)) . '</div>') . '</td>'
@@ -77,18 +78,21 @@ foreach ($rows as $r) {
 $notice = $hasData ? '' : '<p style="margin:20px 0 0;padding:12px 14px;background:#fffaeb;border:1px solid #fedf89;border-radius:8px;font-size:13px;color:#93370d;">'
     . 'No readings for this month. Check that the counter cron job (counter.php) is running.</p>';
 $button = defined('DASHBOARD_URL')
-    ? '<a href="' . $e(DASHBOARD_URL) . '" style="display:inline-block;padding:10px 18px;background:#0f6cbd;color:#ffffff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:600;">Open dashboard</a>'
+    // the padding sits on the table cell: Outlook ignores padding on links
+    ? '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td bgcolor="#0f6cbd" style="background:#0f6cbd;border-radius:6px;padding:10px 18px;">'
+      . '<a href="' . $e(DASHBOARD_URL) . '" style="color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;display:block;">Open dashboard</a></td></tr></table>'
     : '';
 
 $html = <<<HTML
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light only"><title>{$e($subject)}</title></head>
-<body style="margin:0;padding:0;background:#f4f4f5;">
+<body bgcolor="#f4f4f5" style="margin:0;padding:0;background:#f4f4f5;">
 <div style="display:none;max-height:0;overflow:hidden;">{$e($kwh($total))} used in {$e($monthLabel)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;$font">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#f4f4f5" style="background:#f4f4f5;$font">
 <tr><td align="center" style="padding:32px 16px;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;">
+  <!-- width attribute for Outlook, max-width for everyone else -->
+  <table role="presentation" width="560" align="center" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="width:100%;max-width:560px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;">
   <tr><td style="padding:28px 32px 8px;">
     <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#0f6cbd;">Smarthome &middot; Monthly report</div>
     <h1 style="margin:8px 0 0;font-size:22px;line-height:1.3;font-weight:600;color:#18181b;">Energy usage in {$e($monthLabel)}</h1>
@@ -99,7 +103,7 @@ $html = <<<HTML
     <div style="margin-top:8px;">$delta</div>
   </td></tr>
   <tr><td style="padding:20px 32px 8px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa;border:1px solid #ececef;border-radius:8px;"><tr>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#fafafa" style="background:#fafafa;border:1px solid #ececef;border-radius:8px;"><tr>
       {$stat('Per day', $e(number_format($total / $days, 2)) . ' kWh')}
       {$stat('Average power', $e(round($total / ($days * 24) * 1000)) . ' W', 'border-left:1px solid #ececef;')}
     </tr></table>
@@ -111,9 +115,9 @@ $html = <<<HTML
   </td></tr>
   <tr><td style="padding:16px 32px 28px;">$button</td></tr>
   </table>
-  <p style="max-width:560px;margin:16px auto 0;font-size:12px;line-height:1.5;color:#a1a1aa;">
-    Calculated from the plugs' power, read once a minute on the local network. Values are estimates.
-  </p>
+  <table role="presentation" width="560" align="center" cellpadding="0" cellspacing="0" style="width:100%;max-width:560px;"><tr>
+    <td style="padding:16px 4px 0;font-size:12px;line-height:1.5;color:#a1a1aa;">Calculated from the plugs' power, read once a minute on the local network. Values are estimates.</td>
+  </tr></table>
 </td></tr>
 </table>
 </body></html>
