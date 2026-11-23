@@ -1,0 +1,22 @@
+# Smarthome - read-only dashboard for Tuya smart plugs.
+Options -Indexes
+DirectoryIndex index.php
+# Behind a reverse proxy mod_dir would redirect /smarthome to http://.../smarthome/.
+# If you turn this off, rewrite /smarthome to smarthome/index.php in the parent .htaccess.
+DirectorySlash Off
+
+# Local keys, the library and the cron script are never served.
+<FilesMatch "^(config.*|tuya|auth|counter)\.php$">
+  Require all denied
+</FilesMatch>
+<FilesMatch "^(README\.md|LICENSE)$">
+  Require all denied
+</FilesMatch>
+RedirectMatch 404 "/\.git(attributes|ignore)?(/|$)"
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "no-referrer"
+  Header always set Cache-Control "no-store"
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+</IfModule>

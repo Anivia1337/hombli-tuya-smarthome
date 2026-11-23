@@ -1,0 +1,4 @@
+# Local keys, password hash and runtime data stay out of the repository.
+config.php
+data/*
+!data/.htaccess
