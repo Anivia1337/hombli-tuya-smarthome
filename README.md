@@ -5,6 +5,7 @@ A small read-only dashboard for Wi-Fi smart plugs built on Tuya (Smart Life, Hom
 - on/off state, power (W), voltage (V) and current (A) for every plug, refreshed every 5 seconds
 - total power of all plugs
 - energy usage in kWh per plug and month, with the last 13 months listed
+- optionally, a monthly usage report by email
 
 It never switches a plug. The code only sends status queries.
 
@@ -66,7 +67,7 @@ Give every plug a **fixed DHCP lease** in your router, otherwise the IP changes 
 
 Copy the folder to your web server, for example as `/smarthome`. The bundled `.htaccess` (Apache) does this:
 
-- blocks `config.php`, `tuya.php`, `auth.php`, `counter.php` and `data/`
+- blocks `config.php`, `tuya.php`, `auth.php`, `counter.php`, `report.php`, `mail.php` and `data/`
 - sets a strict Content Security Policy
 - turns off `DirectorySlash`. Behind a reverse proxy, Apache would otherwise redirect `/smarthome` to an `http://` URL. With it off, `/smarthome` (no slash) needs a rewrite in the parent `.htaccess`:
 
@@ -92,6 +93,48 @@ sudo crontab -u www-data -e
 
 The user running the cron job must be able to write to `data/`. The first numbers appear after two minutes.
 
+### 7. Monthly report by email (optional)
+
+`report.php` mails the usage of the previous month, per plug and in total, compared with the month before:
+
+```text
+Subject: Energy usage November 2026: 101.79 kWh
+
+Energy usage for November 2026
+
+desk       5.02 kWh  (Oct: 7.31 kWh, -31 %)
+tv        96.77 kWh  (Oct: 148.20 kWh, -35 %)
+-------------------
+Total    101.79 kWh  (Oct: 155.51 kWh, -35 %)
+```
+
+It sends through an SMTP mailbox. Put the mailbox login in a file **outside the web root** that the cron user can read:
+
+```sh
+sudo mkdir -p /etc/smarthome
+sudo nano /etc/smarthome/mail.php
+```
+
+```php
+<?php return ['user' => 'sender@example.com', 'pass' => '...', 'smtp' => 'ssl://smtp.example.com:465'];
+```
+
+```sh
+sudo chown root:www-data /etc/smarthome/mail.php
+sudo chmod 640 /etc/smarthome/mail.php
+```
+
+`smtp` is optional and defaults to IONOS (`ssl://smtp.ionos.de:465`). Set `MAIL_ACCOUNT`, `MAIL_TO` and, optionally, `DASHBOARD_URL` in `config.php`. Check the text with a dry run, send one real mail, then add the cron job:
+
+```sh
+sudo -u www-data php /var/www/smarthome/report.php --dry-run
+sudo -u www-data php /var/www/smarthome/report.php --month=2026-11
+```
+
+```cron
+0 7 1 * * php /var/www/smarthome/report.php
+```
+
 ## How it works
 
 | File | Purpose |
@@ -99,6 +142,7 @@ The user running the cron job must be able to write to `data/`. The first number
 | `tuya.php` | Minimal Tuya 3.3 client: sends an encrypted `DP_QUERY` to port 6668 and decrypts the reply (AES-128-ECB with the local key) |
 | `api.php` | JSON for the page: current values of all plugs plus monthly usage. Readings are cached for 4 s, because the plugs handle parallel connections badly. |
 | `counter.php` | Cron job for the kWh counter (CLI only) |
+| `report.php`, `mail.php` | Monthly report and a minimal SMTP client (CLI only) |
 | `index.php`, `app.js`, `style.css` | Page and sign-in |
 | `auth.php` | Session check |
 

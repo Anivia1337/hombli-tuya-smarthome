@@ -11,3 +11,10 @@ const PLUGS = [
     ['name' => 'desk', 'ip' => '192.168.1.50', 'id' => 'bf0123456789abcdefghij', 'key' => '0123456789abcdef'],
     ['name' => 'tv',   'ip' => '192.168.1.51', 'id' => 'bf9876543210zyxwvutsrq', 'key' => 'fedcba9876543210'],
 ];
+
+// Monthly report (report.php). MAIL_ACCOUNT is a PHP file outside the web root that returns
+//   ['user' => 'sender@example.com', 'pass' => '...', 'smtp' => 'ssl://smtp.example.com:465']
+// 'smtp' is optional and defaults to IONOS (ssl://smtp.ionos.de:465).
+const MAIL_ACCOUNT = '/etc/smarthome/mail.php';
+const MAIL_TO = 'you@example.com';
+const DASHBOARD_URL = 'https://example.com/smarthome';   // optional, shown in the mail

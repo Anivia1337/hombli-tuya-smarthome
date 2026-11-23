@@ -6,7 +6,7 @@ DirectoryIndex index.php
 DirectorySlash Off
 
 # Local keys, the library and the cron script are never served.
-<FilesMatch "^(config.*|tuya|auth|counter)\.php$">
+<FilesMatch "^(config.*|tuya|auth|counter|report|mail)\.php$">
   Require all denied
 </FilesMatch>
 <FilesMatch "^(README\.md|LICENSE)$">
