@@ -14,6 +14,10 @@ The plugs are only switched when you confirm it on the page. The air purifier is
 
 ![Dashboard, light theme](docs/dashboard-light.png)
 
+Switching a plug asks for confirmation first. Plugs with `'switch' => false` (TV in the screenshots) have no button.
+
+![Confirmation before switching a plug](docs/switch-dialog.png)
+
 ![Sign-in page](docs/login.png)
 
 ## Requirements
