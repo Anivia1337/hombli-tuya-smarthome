@@ -1,14 +1,14 @@
 # Smarthome
 
-A small read-only dashboard for Wi-Fi smart plugs built on Tuya (Smart Life, Hombli and many others). It reads the plugs directly over your local network, with no cloud and no Home Assistant, and shows:
+A small dashboard for Wi-Fi smart plugs built on Tuya (Smart Life, Hombli and many others). It reads the plugs directly over your local network, with no cloud and no Home Assistant, and shows:
 
-- on/off state, power (W), voltage (V) and current (A) for every plug, refreshed every 5 seconds
+- on/off state with a button to switch each plug (asks for confirmation first), power (W), voltage (V) and current (A) for every plug, refreshed every 5 seconds
 - total power of all plugs
 - energy usage in kWh per plug and month, with the last 13 months listed
 - optionally, a monthly usage report by email
 - optionally, a Xiaomi Smart Air Purifier 4 Pro: PM2.5, humidity, temperature, mode and filter life
 
-It never switches a plug. The code only sends status queries.
+The plugs are only switched when you confirm it on the page. The air purifier is read-only.
 
 ![Dashboard, dark theme](docs/dashboard-dark.png)
 
@@ -147,9 +147,9 @@ The purifier reports no power usage, so it gets its own card and is not counted 
 
 | File | Purpose |
 |---|---|
-| `tuya.php` | Minimal Tuya 3.3 client: sends an encrypted `DP_QUERY` to port 6668 and decrypts the reply (AES-128-ECB with the local key) |
+| `tuya.php` | Minimal Tuya 3.3 client: sends an encrypted `DP_QUERY` or `CONTROL` (data point 1) to port 6668 and decrypts the reply (AES-128-ECB with the local key) |
 | `miio.php` | Minimal Xiaomi miIO client: handshake, then an AES-128-CBC encrypted `get_properties` |
-| `api.php` | JSON for the page: current values of all plugs plus monthly usage. Readings are cached for 4 s, because the plugs handle parallel connections badly. |
+| `api.php` | JSON for the page: current values of all plugs plus monthly usage. A `POST` switches one plug. Readings are cached for 4 s, because the plugs handle parallel connections badly. |
 | `counter.php` | Cron job for the kWh counter (CLI only) |
 | `report.php`, `mail.php` | Monthly report and a minimal SMTP client (CLI only) |
 | `index.php`, `app.js`, `style.css` | Page and sign-in |

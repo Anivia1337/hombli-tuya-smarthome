@@ -1,13 +1,25 @@
 <?php
-// Minimal Tuya local protocol 3.3 client. DP_QUERY only: this project never switches a plug.
+// Minimal Tuya local protocol 3.3 client: read the data points, switch DP 1.
 declare(strict_types=1);
 
 /** Returns the data points of one device, e.g. ['1' => true, '19' => 2922, ...]. */
 function tuya_status(string $ip, string $id, string $key, float $timeout = 3.0): array
 {
-    $json = json_encode(['gwId' => $id, 'devId' => $id, 'uid' => $id, 't' => (string) time()]);
+    return tuya_call($ip, $id, $key, 0x0a, ['gwId' => $id], $timeout);
+}
+
+/** Switches the plug (data point 1) on or off. */
+function tuya_switch(string $ip, string $id, string $key, bool $on, float $timeout = 3.0): void
+{
+    tuya_call($ip, $id, $key, 0x07, ['dps' => ['1' => $on]], $timeout);
+}
+
+function tuya_call(string $ip, string $id, string $key, int $cmd, array $extra, float $timeout): array
+{
+    $json = json_encode($extra + ['devId' => $id, 'uid' => $id, 't' => (string) time()]);
     $payload = openssl_encrypt($json, 'AES-128-ECB', $key, OPENSSL_RAW_DATA);
-    $msg = pack('NNNN', 0x000055AA, 1, 0x0a, strlen($payload) + 8) . $payload;
+    if ($cmd === 0x07) $payload = '3.3' . str_repeat("\0", 12) . $payload; // 3.3 puts a version header on CONTROL
+    $msg = pack('NNNN', 0x000055AA, 1, $cmd, strlen($payload) + 8) . $payload;
     $msg .= pack('NN', crc32($msg), 0x0000AA55);
 
     $s = @stream_socket_client("tcp://$ip:6668", $errno, $errstr, $timeout);
@@ -18,7 +30,12 @@ function tuya_status(string $ip, string $id, string $key, float $timeout = 3.0):
         for ($i = 0; $i < 3; $i++) {                         // the device may send other frames first
             $h = unpack('Nprefix/Nseq/Ncmd/Nlen', read_exact($s, 16));
             if ($h['prefix'] !== 0x000055AA) throw new RuntimeException('invalid response');
-            $data = substr(read_exact($s, $h['len']), 4, -8); // drop return code, crc and suffix
+            $body = read_exact($s, $h['len']);
+            $data = substr($body, 4, -8);                     // drop return code, crc and suffix
+            if ($cmd === 0x07 && $h['cmd'] === 0x07) {
+                if (unpack('N', $body)[1] !== 0) throw new RuntimeException('switch refused');
+                return [];
+            }
             if (str_starts_with($data, '3.3')) $data = substr($data, 15);
             if ($h['cmd'] !== 0x0a && $h['cmd'] !== 0x08 || $data === '') continue;
             $plain = openssl_decrypt($data, 'AES-128-ECB', $key, OPENSSL_RAW_DATA);

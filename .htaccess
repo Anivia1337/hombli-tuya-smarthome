@@ -1,4 +1,4 @@
-# Smarthome - read-only dashboard for Tuya smart plugs.
+# Smarthome - dashboard for Tuya smart plugs.
 Options -Indexes
 DirectoryIndex index.php
 # Behind a reverse proxy mod_dir would redirect /smarthome to http://.../smarthome/.

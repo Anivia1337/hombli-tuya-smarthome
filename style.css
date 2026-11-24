@@ -55,3 +55,14 @@ td:last-child{font-weight:600}
 .scroll{overflow-x:auto;border-radius:12px}
 td{white-space:nowrap}
 .warn{align-self:flex-start;font-size:13px;font-weight:600;color:#1f1400;background:#fdb022;border-radius:6px;padding:4px 10px}
+
+.switch,dialog button{font:inherit;font-size:14px;font-weight:600;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:8px;padding:8px 14px;cursor:pointer}
+.switch{align-self:flex-start;margin-top:auto}
+.switch:hover,dialog button:hover{background:var(--bg)}
+.switch:disabled{cursor:default;color:var(--text-3)}
+dialog{margin:auto;width:min(360px,calc(100% - 32px));padding:24px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{font-size:17px;font-weight:600}
+dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+dialog .primary{color:#fff;background:#0f6cbd;border-color:#0f6cbd}
+dialog .primary:hover{background:var(--brand-hover)}

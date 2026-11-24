@@ -51,6 +51,16 @@ if (isset($_GET['logout'])) { session_destroy(); header('Location: ' . strtok($_
     <p id="empty" class="sub">No readings yet. The counter runs once a minute via cron.</p>
     <div class="scroll"><table id="months" hidden><thead></thead><tbody></tbody></table></div>
   </section>
+  <dialog id="confirm">
+    <form method="dialog">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-text" class="sub"></p>
+      <div class="actions">
+        <button value="cancel" autofocus>Cancel</button>
+        <button value="ok" id="confirm-ok" class="primary"></button>
+      </div>
+    </form>
+  </dialog>
 <?php endif; ?>
 </main>
 </body>

@@ -1,5 +1,6 @@
 <?php
-// Current state of all plugs plus monthly usage, as JSON. Read-only.
+// GET: current state of all plugs plus monthly usage, as JSON.
+// POST {"name": "pc", "on": false}: switches one plug.
 require __DIR__ . '/auth.php';
 require __DIR__ . '/tuya.php';
 require __DIR__ . '/miio.php';
@@ -9,6 +10,22 @@ session_write_close();
 
 // Plugs handle parallel connections badly, so several open tabs share one reading.
 $cache = sys_get_temp_dir() . '/smarthome-status.json';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // A custom header cannot be sent cross-site without a CORS preflight, which this page never allows.
+    if (($_SERVER['HTTP_X_SMARTHOME'] ?? '') !== '1') { http_response_code(403); exit('{"error":"forbidden"}'); }
+    $in = json_decode((string) file_get_contents('php://input'), true);
+    $plug = current(array_filter(PLUGS, fn($p) => $p['name'] === ($in['name'] ?? null)));
+    if (!$plug || !is_bool($in['on'] ?? null)) { http_response_code(400); exit('{"error":"bad request"}'); }
+    try {
+        tuya_switch($plug['ip'], $plug['id'], $plug['key'], $in['on']);
+    } catch (Throwable $e) {
+        http_response_code(502); exit(json_encode(['error' => $e->getMessage()]));
+    }
+    @unlink($cache); // next reading shows the new state
+    exit('{"ok":true}');
+}
+
 if (is_file($cache) && time() - filemtime($cache) < 4) { readfile($cache); exit; }
 
 $out = ['time' => time(), 'plugs' => []];

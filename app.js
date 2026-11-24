@@ -24,8 +24,38 @@ function card(p) {
   for (const [k, v] of [['Voltage', fmt(p.v) + ' V'], ['Current', fmt(p.ma / 1000, 2) + ' A']]) {
     dl.append(el('dt', '', k), el('dd', '', v));
   }
-  c.append(big, dl);
+  const b = el('button', 'switch', p.on ? 'Turn off' : 'Turn on');
+  b.type = 'button';
+  b.addEventListener('click', () => toggle(p, b));
+  c.append(big, dl, b);
   return c;
+}
+
+// Asks first, then switches the plug.
+function toggle(p, button) {
+  const on = !p.on;
+  const d = $('confirm');
+  $('confirm-title').textContent = `Turn ${on ? 'on' : 'off'} ${p.name}?`;
+  $('confirm-text').textContent = on ? 'The plug will be switched on.' : 'Everything plugged into it loses power.';
+  $('confirm-ok').textContent = on ? 'Turn on' : 'Turn off';
+  d.onclose = async () => {
+    if (d.returnValue !== 'ok') return;
+    button.disabled = true;
+    button.textContent = 'Switching …';
+    try {
+      const r = await fetch('api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Smarthome': '1' },
+        body: JSON.stringify({ name: p.name, on }),
+      });
+      if (!r.ok) throw new Error((await r.json()).error);
+    } catch (e) {
+      alert(`Could not switch ${p.name}: ${e.message}`);
+    }
+    load();
+  };
+  d.returnValue = '';
+  d.showModal();
 }
 
 // PM2.5 bands of the European Air Quality Index (µg/m³)
