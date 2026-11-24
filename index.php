@@ -6,11 +6,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (password_verify($_POST['password'] ?? '', PAGE_PASSWORD_HASH)) {
         session_regenerate_id(true);
         $_SESSION['smarthome_auth'] = true;
+        remember_set(true);
         header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?')); exit;
     }
     $error = 'Wrong password';
 }
-if (isset($_GET['logout'])) { session_destroy(); header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?')); exit; }
+if (isset($_GET['logout'])) { session_destroy(); remember_set(false); header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?')); exit; }
 ?>
 <!DOCTYPE html>
 <html lang="en">

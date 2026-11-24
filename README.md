@@ -153,7 +153,7 @@ The purifier reports no power usage, so it gets its own card and is not counted 
 | `counter.php` | Cron job for the kWh counter (CLI only) |
 | `report.php`, `mail.php` | Monthly report and a minimal SMTP client (CLI only) |
 | `index.php`, `app.js`, `style.css` | Page and sign-in |
-| `auth.php` | Session check |
+| `auth.php` | Session check, plus a signed cookie that keeps a device signed in for 30 days. Changing the password signs out every device. |
 
 Data points used: `1` on/off, `18` current in mA, `19` power in W×10, `20` voltage in V×10. A plug with a different mapping shows wrong values. In that case, check the raw data points with `tinytuya` and adjust `plug_values()` in `tuya.php`.
 
