@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (($_SERVER['HTTP_X_SMARTHOME'] ?? '') !== '1') { http_response_code(403); exit('{"error":"forbidden"}'); }
     $in = json_decode((string) file_get_contents('php://input'), true);
     $plug = current(array_filter(PLUGS, fn($p) => $p['name'] === ($in['name'] ?? null)));
-    if (!$plug || !is_bool($in['on'] ?? null)) { http_response_code(400); exit('{"error":"bad request"}'); }
+    if (!$plug || ($plug['switch'] ?? true) === false || !is_bool($in['on'] ?? null)) { http_response_code(400); exit('{"error":"bad request"}'); }
     try {
         tuya_switch($plug['ip'], $plug['id'], $plug['key'], $in['on']);
     } catch (Throwable $e) {
@@ -31,7 +31,7 @@ if (is_file($cache) && time() - filemtime($cache) < 4) { readfile($cache); exit;
 $out = ['time' => time(), 'plugs' => []];
 foreach (PLUGS as $p) {
     try {
-        $out['plugs'][] = ['name' => $p['name']] + plug_values(tuya_status($p['ip'], $p['id'], $p['key']));
+        $out['plugs'][] = ['name' => $p['name'], 'switch' => $p['switch'] ?? true] + plug_values(tuya_status($p['ip'], $p['id'], $p['key']));
     } catch (Throwable $e) {
         $out['plugs'][] = ['name' => $p['name'], 'error' => $e->getMessage()];
     }

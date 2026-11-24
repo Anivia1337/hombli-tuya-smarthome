@@ -60,7 +60,7 @@ cp config.example.php config.php
 php -r "echo password_hash('your password', PASSWORD_DEFAULT), PHP_EOL;"
 ```
 
-In `config.php`, set `PAGE_PASSWORD_HASH` to that hash. Then add one entry to `PLUGS` per plug, with a name of your choice, the IP address, and `id` and `key` from `devices.json`.
+In `config.php`, set `PAGE_PASSWORD_HASH` to that hash. Then add one entry to `PLUGS` per plug, with a name of your choice, the IP address, and `id` and `key` from `devices.json`. Add `'switch' => false` to a plug that must never be turned off from the page, such as the one powering your PC: it then gets no button, and the server refuses to switch it.
 
 Give every plug a **fixed DHCP lease** in your router, otherwise the IP changes and the plug shows as offline.
 

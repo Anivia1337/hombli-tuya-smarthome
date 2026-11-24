@@ -24,10 +24,13 @@ function card(p) {
   for (const [k, v] of [['Voltage', fmt(p.v) + ' V'], ['Current', fmt(p.ma / 1000, 2) + ' A']]) {
     dl.append(el('dt', '', k), el('dd', '', v));
   }
-  const b = el('button', 'switch', p.on ? 'Turn off' : 'Turn on');
-  b.type = 'button';
-  b.addEventListener('click', () => toggle(p, b));
-  c.append(big, dl, b);
+  c.append(big, dl);
+  if (p.switch) {
+    const b = el('button', 'switch', p.on ? 'Turn off' : 'Turn on');
+    b.type = 'button';
+    b.addEventListener('click', () => toggle(p, b));
+    c.append(b);
+  }
   return c;
 }
 

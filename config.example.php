@@ -7,9 +7,10 @@ const PAGE_PASSWORD_HASH = '$2y$10$replace.this.with.your.own.hash..............
 
 // One entry per plug. id and key come from `python -m tinytuya wizard` (see README).
 // Give each plug a fixed DHCP lease so the IP does not change.
+// 'switch' => false hides the on/off button, e.g. for the plug that powers your PC.
 const PLUGS = [
     ['name' => 'desk', 'ip' => '192.168.1.50', 'id' => 'bf0123456789abcdefghij', 'key' => '0123456789abcdef'],
-    ['name' => 'tv',   'ip' => '192.168.1.51', 'id' => 'bf9876543210zyxwvutsrq', 'key' => 'fedcba9876543210'],
+    ['name' => 'tv',   'ip' => '192.168.1.51', 'id' => 'bf9876543210zyxwvutsrq', 'key' => 'fedcba9876543210', 'switch' => false],
 ];
 
 // Monthly report (report.php). MAIL_ACCOUNT is a PHP file outside the web root that returns
