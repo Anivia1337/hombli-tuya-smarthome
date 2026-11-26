@@ -147,6 +147,7 @@ function snmpCard(d) {
     const bar = el('div', 'bar');
     bar.append(fill);
     m.append(top, bar);
+    if (b.note) m.append(el('span', 'sub', b.note));
     c.append(m);
   }
   if (d.table) {

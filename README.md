@@ -151,7 +151,7 @@ The purifier reports no power usage, so it gets its own card and is not counted 
 
 The **SNMP** tab next to **Smarthome** shows a Synology NAS and a network printer over SNMP v2c. `snmp.php` speaks the protocol itself, so the PHP `snmp` extension is not needed.
 
-- **Synology:** turn on SNMP under Control Panel > Terminal & SNMP > SNMP (SNMPv1, SNMPv2c service). The card shows model, DSM version, uptime, CPU, memory, temperature, fans, the fill level of every volume and a table of the disks. A storage pool only appears when its RAID is not normal.
+- **Synology:** turn on SNMP under Control Panel > Terminal & SNMP > SNMP (SNMPv1, SNMPv2c service). The card shows model, DSM version, uptime, CPU, memory, temperature, fans, the fill level and read/write speed of every volume and a table of the disks. A storage pool only appears when its RAID is not normal. The speed is averaged between two readings; the counter `dm-N` is assumed to belong to "Volume N".
 - **Printer:** most network printers answer on the community `public` out of the box. The card shows status, page count, display text and the level of each ink or toner.
 
 List the devices in `SNMP_DEVICES` in `config.php` (see `config.example.php`). Readings are cached for 10 seconds.

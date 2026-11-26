@@ -130,7 +130,7 @@ function snmp_walk(string $host, string $community, string $root): array
 
 // ---------------------------------------------------------------------------
 // Devices for the SNMP tab. Each returns the same shape for app.js:
-// status, warn, rows [[label, value]], bars [{label, pct, text, warn}], table {head, rows}
+// status, warn, rows [[label, value]], bars [{label, pct, text, warn, note?}], table {head, rows}
 
 function snmp_device(array $d): array
 {
@@ -211,6 +211,24 @@ function synology_info(string $ip, string $c): array
 
     $raidStatus = [1 => 'Normal', 2 => 'Repairing', 3 => 'Migrating', 4 => 'Expanding', 5 => 'Deleting', 6 => 'Creating', 7 => 'Syncing',
         8 => 'Parity check', 9 => 'Assembling', 10 => 'Canceling', 11 => 'Degraded', 12 => 'Crashed', 13 => 'Data scrubbing'];
+    // Read/write speed: the byte counters only grow, so compare with the previous sample (one every ~10 s via the API cache).
+    // ponytail: counter "dm-N" is matched to "Volume N" (verified on this NAS with a test write); breaks if DSM numbers them differently.
+    $io = [];
+    foreach (snmp_table($ip, $c, '1.3.6.1.4.1.6574.102.1.1') as $s) { // spaceIOTable: 2 device, 12 bytes read, 13 bytes written (64-bit)
+        if (preg_match('/^dm-(\d+)$/', (string) ($s[2] ?? ''), $m)) $io['Volume ' . $m[1]] = [$s[12] ?? 0, $s[13] ?? 0];
+    }
+    $ioFile = sys_get_temp_dir() . "/smarthome-io-$ip.json";
+    $prev = @json_decode((string) @file_get_contents($ioFile), true);
+    $now = microtime(true);
+    file_put_contents($ioFile, json_encode(['t' => $now, 'io' => $io]), LOCK_EX);
+    $dt = $now - ($prev['t'] ?? 0);
+    $speed = function (string $name) use ($io, $prev, $dt): ?string {
+        if (!isset($io[$name])) return null;
+        if (!isset($prev['io'][$name]) || $dt <= 0 || $dt > 300) return 'Read – · Write –';
+        $rate = fn($i) => snmp_bytes(max(0, $io[$name][$i] - $prev['io'][$name][$i]) / $dt) . '/s'; // max: counters reset on reboot
+        return 'Read ' . $rate(0) . ' · Write ' . $rate(1);
+    };
+
     $bars = [];
     $raids = snmp_table($ip, $c, '1.3.6.1.4.1.6574.3.1.1'); // raidTable: 2 name, 3 status, 4 free, 5 total (bytes)
     usort($raids, fn($a, $b) => strnatcmp((string) ($a[2] ?? ''), (string) ($b[2] ?? '')));
@@ -224,6 +242,7 @@ function synology_info(string $ip, string $c): array
             'pct' => $pct,
             'text' => snmp_bytes($total - ($r[4] ?? 0)) . ' of ' . snmp_bytes($total) . (($r[3] ?? 1) !== 1 ? ' · ' . ($raidStatus[$r[3]] ?? 'Status ' . $r[3]) : ''),
             'warn' => $pct >= 90 || !in_array($r[3] ?? 1, [1, 13], true),
+            'note' => $speed((string) ($r[2] ?? '')),
         ];
     }
 
