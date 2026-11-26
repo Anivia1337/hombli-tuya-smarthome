@@ -42,6 +42,12 @@ if (isset($_GET['logout'])) { session_destroy(); remember_set(false); header('Lo
     </div>
     <a class="logout" href="?logout=1">Sign out</a>
   </header>
+  <nav class="tabs">
+    <a href="#smarthome" aria-current="page">Smarthome</a>
+    <a href="#snmp">SNMP</a>
+  </nav>
+  <section id="snmp" class="grid" aria-live="polite" hidden></section>
+  <div id="home">
   <section class="total">
     <span class="label">Total power</span>
     <span class="big"><span id="total">–</span> <small>W</small></span>
@@ -52,6 +58,7 @@ if (isset($_GET['logout'])) { session_destroy(); remember_set(false); header('Lo
     <p id="empty" class="sub">No readings yet. The counter runs once a minute via cron.</p>
     <div class="scroll"><table id="months" hidden><thead></thead><tbody></tbody></table></div>
   </section>
+  </div>
   <dialog id="confirm">
     <form method="dialog">
       <h2 id="confirm-title"></h2>

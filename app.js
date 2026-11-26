@@ -125,6 +125,75 @@ async function load() {
   }
 }
 
-load();
-setInterval(() => { if (!document.hidden) load(); }, 5000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+// SNMP tab: NAS and printer. The server returns rows, bars and an optional table per device.
+function snmpCard(d) {
+  const c = el('article', 'card' + (d.error ? ' off' : '') + (d.table ? ' wide' : ''));
+  const h = el('h2', '', d.name);
+  h.append(el('span', 'pill' + (d.warn ? ' bad' : ''), d.error ? 'Offline' : d.status));
+  c.append(h);
+  if (d.error) {
+    c.append(el('p', 'err', d.error));
+    return c;
+  }
+  const dl = el('dl');
+  for (const [k, v] of d.rows) dl.append(el('dt', '', k), el('dd', '', v));
+  c.append(dl);
+  for (const b of d.bars) {
+    const m = el('div', 'meter' + (b.warn ? ' low' : ''));
+    const top = el('div', 'meter-top');
+    top.append(el('span', '', b.label), el('span', '', b.text));
+    const fill = el('span');
+    fill.style.width = (b.pct ?? 0) + '%';
+    const bar = el('div', 'bar');
+    bar.append(fill);
+    m.append(top, bar);
+    c.append(m);
+  }
+  if (d.table) {
+    const t = el('table');
+    const tr = el('tr');
+    for (const x of d.table.head) tr.append(el('th', '', x));
+    t.createTHead().append(tr);
+    const body = t.createTBody();
+    for (const r of d.table.rows) {
+      const row = el('tr');
+      for (const x of r) row.append(el('td', '', x));
+      body.append(row);
+    }
+    const s = el('div', 'scroll');
+    s.append(t);
+    c.append(s);
+  }
+  return c;
+}
+
+async function loadSnmp() {
+  try {
+    const r = await fetch('api.php?view=snmp', { cache: 'no-store' });
+    if (r.status === 401) { location.reload(); return; }
+    const d = await r.json();
+    $('snmp').replaceChildren(...d.devices.map(snmpCard));
+    $('updated').textContent = 'Updated ' + new Date(d.time * 1000).toLocaleTimeString(LOCALE);
+  } catch {
+    $('updated').textContent = 'Connection failed';
+  }
+}
+
+// Tabs live in the URL hash, so #snmp can be bookmarked.
+const snmpTab = () => location.hash === '#snmp';
+const refresh = () => (snmpTab() ? loadSnmp() : load());
+function showTab() {
+  $('home').hidden = snmpTab();
+  $('snmp').hidden = !snmpTab();
+  for (const a of document.querySelectorAll('.tabs a')) {
+    if (a.hash === (snmpTab() ? '#snmp' : '#smarthome')) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+  }
+  $('updated').textContent = 'loading …';
+  refresh();
+}
+
+window.addEventListener('hashchange', showTab);
+showTab();
+setInterval(() => { if (!document.hidden) refresh(); }, 5000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });

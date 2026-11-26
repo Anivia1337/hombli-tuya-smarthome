@@ -23,3 +23,10 @@ const DASHBOARD_URL = 'https://example.com/smarthome';   // optional, shown in t
 // Optional: Xiaomi Smart Air Purifier 4 Pro (zhimi.airp.vb4), shown as an extra card.
 // The token comes from Xiaomi-cloud-tokens-extractor (see README).
 // const AIR_PURIFIER = ['name' => 'Air purifier', 'ip' => '192.168.1.60', 'token' => '0123456789abcdef0123456789abcdef'];
+
+// Optional: "SNMP" tab with SNMP v2c devices. type is 'synology' (DSM, enable SNMP under
+// Control Panel > Terminal & SNMP) or 'printer' (any network printer with the standard Printer-MIB).
+// const SNMP_DEVICES = [
+//     ['name' => 'NAS', 'type' => 'synology', 'ip' => '192.168.1.10', 'community' => 'public'],
+//     ['name' => 'Printer', 'type' => 'printer', 'ip' => '192.168.1.20', 'community' => 'public'],
+// ];

@@ -8,6 +8,16 @@ header('Content-Type: application/json');
 if (!$loggedIn) { http_response_code(401); exit('{"error":"login"}'); }
 session_write_close();
 
+// GET ?view=snmp: the SNMP tab, cached 10 s
+if (($_GET['view'] ?? '') === 'snmp') {
+    require __DIR__ . '/snmp.php';
+    $cache = sys_get_temp_dir() . '/smarthome-snmp.json';
+    if (is_file($cache) && time() - filemtime($cache) < 10) { readfile($cache); exit; }
+    $json = json_encode(['time' => time(), 'devices' => array_map('snmp_device', defined('SNMP_DEVICES') ? SNMP_DEVICES : [])], JSON_INVALID_UTF8_SUBSTITUTE);
+    file_put_contents($cache, $json, LOCK_EX);
+    exit($json);
+}
+
 // Plugs handle parallel connections badly, so several open tabs share one reading.
 $cache = sys_get_temp_dir() . '/smarthome-status.json';
 
