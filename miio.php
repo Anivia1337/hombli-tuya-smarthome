@@ -46,12 +46,12 @@ function miio_props(string $ip, string $token, array $props, float $timeout = 3.
 }
 
 /** Xiaomi Smart Air Purifier 4 Pro (zhimi.airp.vb4). Ids from miot-spec.org. */
-function purifier_values(string $ip, string $token): array
+function purifier_values(string $ip, string $token, float $timeout = 3.0): array
 {
     $v = miio_props($ip, $token, [
         'on' => [2, 1], 'fault' => [2, 2], 'mode' => [2, 4], 'humidity' => [3, 1],
         'pm25' => [3, 4], 'temp' => [3, 7], 'filter' => [4, 1], 'rpm' => [9, 1],
-    ]);
+    ], $timeout);
     $faults = [1 => 'PM sensor error', 2 => 'Temperature sensor error', 3 => 'Humidity sensor error', 4 => 'No filter'];
     $modes = ['Auto', 'Sleep', 'Favorite', 'Manual'];
     return [

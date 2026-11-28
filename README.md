@@ -72,7 +72,7 @@ Give every plug a **fixed DHCP lease** in your router, otherwise the IP changes 
 
 Copy the folder to your web server, for example as `/smarthome`. The bundled `.htaccess` (Apache) does this:
 
-- blocks `config.php`, `tuya.php`, `miio.php`, `auth.php`, `counter.php`, `report.php`, `mail.php` and `data/`
+- blocks `config.php`, `tuya.php`, `miio.php`, `auth.php`, `lib.php`, `counter.php`, `report.php`, `mail.php` and `data/`
 - sets a strict Content Security Policy
 - turns off `DirectorySlash`. Behind a reverse proxy, Apache would otherwise redirect `/smarthome` to an `http://` URL. With it off, `/smarthome` (no slash) needs a rewrite in the parent `.htaccess`:
 
@@ -145,7 +145,7 @@ python token_extractor.py
 
 Sign in with your Xiaomi Home account and copy the 32-character token of the purifier into `AIR_PURIFIER` in `config.php`. The token changes only if the purifier is reset or paired again.
 
-The purifier reports no power usage, so it gets its own card and is not counted in the kWh table. Other Xiaomi purifiers use different property ids. Adjust `purifier_values()` in `miio.php` using the model's spec on [miot-spec.org](https://miot-spec.org).
+The purifier reports no power usage, so it gets its own card and is not counted in the kWh table. If it does not answer (switched off, new IP), the page waits at most 1 s once and then skips it for a minute, so the plugs stay fast. Other Xiaomi purifiers use different property ids. Adjust `purifier_values()` in `miio.php` using the model's spec on [miot-spec.org](https://miot-spec.org).
 
 ### 9. SNMP tab (optional)
 
@@ -162,7 +162,8 @@ List the devices in `SNMP_DEVICES` in `config.php` (see `config.example.php`). R
 |---|---|
 | `tuya.php` | Minimal Tuya 3.3 client: sends an encrypted `DP_QUERY` or `CONTROL` (data point 1) to port 6668 and decrypts the reply (AES-128-ECB with the local key) |
 | `miio.php` | Minimal Xiaomi miIO client: handshake, then an AES-128-CBC encrypted `get_properties` |
-| `api.php` | JSON for the page: current values of all plugs plus monthly usage. A `POST` switches one plug. Readings are cached for 4 s, because the plugs handle parallel connections badly. |
+| `api.php` | JSON for the page: current values of all plugs plus monthly usage. A `POST` switches one plug. Sign-in check only; the work happens in `lib.php`. |
+| `lib.php` | Readings (plugs, air purifier, usage, SNMP) and switching, cached for 4 s (SNMP 10 s) because the plugs handle parallel connections badly. Another app on the same server can include it to show the same data with its own sign-in. |
 | `counter.php` | Cron job for the kWh counter (CLI only) |
 | `report.php`, `mail.php` | Monthly report and a minimal SMTP client (CLI only) |
 | `index.php`, `app.js`, `style.css` | Page and sign-in |
